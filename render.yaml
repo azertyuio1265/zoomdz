@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: meet-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: gunicorn meet.wsgi:application
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: meet-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: false
+
+  - type: web
+    name: meet-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  - name: meet-db
+    databaseName: meet_db
+    user: meet_user
